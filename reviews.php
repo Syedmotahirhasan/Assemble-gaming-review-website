@@ -1,0 +1,90 @@
+<?php 
+session_start();
+require_once "includes/auth_check.php";
+checkAuth();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Reviews - Assemble Gaming Zone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/reviews.css">
+</head>
+<body>
+    <?php include 'includes/header.php'; ?>
+    
+
+    <main class="reviews-container">
+        <h1>Game Reviews</h1>
+        
+        <div class="filters-section">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search games...">
+                <button id="searchButton"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="filter-options">
+                <div class="sort-by">
+                    <label>Sort By:</label>
+                    <select id="sortSelect">
+                        <option value="most-recent">Most Recent</option>
+                        <option value="least-recent">Least Recent</option>
+                        <option value="score">Score</option>
+                        <option value="name">Name</option>
+                    </select>
+                </div>
+                
+                <div class="platform-filter">
+                    <label>Platform:</label>
+                    <div class="platform-buttons">
+                        <button class="platform-btn active" data-platform="all">All</button>
+                        <button class="platform-btn" data-platform="pc">PC</button>
+                        <button class="platform-btn" data-platform="xbox">Xbox</button>
+                        <button class="platform-btn" data-platform="Mobile">Mobile</button>
+                        <button class="platform-btn" data-platform="PS">PS</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="reviews-grid">
+            <?php
+            // Fetch reviews from the database
+            require_once 'includes/db.php';
+            $reviews = $pdo->query('SELECT id, game_name, main_image, release_date, platforms, score FROM game_reviews_full ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($reviews as $review) {
+                $platforms = htmlspecialchars($review['platforms']);
+                $date = date('F j, Y', strtotime($review['release_date']));
+                $img = htmlspecialchars($review['main_image']);
+                $title = htmlspecialchars($review['game_name']);
+                $score = htmlspecialchars($review['score']);
+                echo <<<HTML
+                <div class="review-card" data-platforms="{$platforms}" data-score="{$score}" data-date="{$review['release_date']}" data-title="{$title}">
+                    <div class="review-image">
+                        <img src="{$img}" alt="{$title}">
+                        <div class="review-score">{$score}</div>
+                    </div>
+                    <div class="review-info">
+                        <h3>{$title}</h3>
+                        <div class="review-meta">
+                            <span class="platforms">{$platforms}</span>
+                            <span class="date">{$date}</span>
+                        </div>
+                        <a href="review-detail.php?id={$review['id']}" class="read-more">Read Full Review</a>
+                    </div>
+                </div>
+                HTML;
+            }
+            ?>
+        </div>
+    </main>
+
+    <?php include 'includes/footer.php'; ?>
+    
+    <script src="js/script.js"></script>
+    <script src="js/reviews.js"></script>
+</body>
+</html>
